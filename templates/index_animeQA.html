@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<head>
+  <title>AnimeRecBot</title>
+  <link
+    rel="shortcut icon"
+    href="{{ url_for('static', filename='crtheme.jpg') }}"
+  />
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" />
+</head>
+
+<body>
+  <img src="{{ url_for('static', filename='crtheme.jpg') }}" class="bigicon" />
+  <h4>Name your favorite Anime series, and we'll tell you what to what to watch next, and WHY it will be good:)</h3>
+  <form action="/" method="post">
+    <input type="text" name="anime" placeholder="Enter an anime title" required />
+    <input type="submit" value="Generate Recommendations" />
+  </form>
+  {% if result %}
+  <div class="result">{{ result }}</div>
+  {% endif %}
+</body>
