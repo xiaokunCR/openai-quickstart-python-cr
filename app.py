@@ -11,11 +11,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 def index():
     if request.method == "POST":
         # animal = request.form["animal"]
-        anime = request.form["anime"]
+        past_title = request.form["past_title"]
+        future_title = request.form["future_title"]
         response = openai.Completion.create(
             model="text-davinci-003",
             # prompt=generate_prompt(animal),
-            prompt=generate_anime_recsys_prompt_noprimer(anime),
+            prompt=generate_past_future_link_prompt(past_title, future_title),
             temperature=0.9,
             max_tokens=512
         )
@@ -26,17 +27,6 @@ def index():
     return render_template("index_animeQA.html", result=result)
 
 
-def generate_prompt(animal):
-    return """Suggest three names for an animal that is a superhero.
-
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: {}
-Names:""".format(
-        animal.capitalize()
-    )
 
 # get the insparation from here https://www.fandom.com/articles/similar-anime
 # feed the model with analogies, 
@@ -70,3 +60,12 @@ def generate_anime_recsys_prompt_noprimer(anime):
     and tell me why it would fit my interest""".format(
         anime.capitalize()
     )
+
+def generate_past_future_link_prompt(past_title, future_title):
+    return """You are an expert on the subject of Anime and your job is to convince me to watch {future}. I have enjoyed watching {past}. Tell me how is {future} related to the {past} and why will I like {future}""".format(
+    past=past_title.capitalize(),
+    future=future_title.capitalize()
+    )
+
+if __name__ == "__main__":
+    app.run(host = "0.0.0.0", port = 5000, debug = True)

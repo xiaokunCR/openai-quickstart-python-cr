@@ -10,10 +10,14 @@
 
 <body>
   <img src="{{ url_for('static', filename='crtheme.jpg') }}" class="bigicon" />
-  <h4>Name your favorite Anime series, and we'll tell you what to what to watch next, and WHY it will be good:)</h3>
+  <p> Hi there, I'm an anime expert supported by OpenAI's chatGPT.</p> 
+  <p>I can help you to find the connections between anime Series, and tell you why you would love a new show given that you have enjoyed another title.<p>
+  <p> Type in the series names in the boxes below, and don't worry about the spelling since I will kinda guess what you are refering to.<p>
+
   <form action="/" method="post">
-    <input type="text" name="anime" placeholder="Enter an anime title" required />
-    <input type="submit" value="Generate Recommendations" />
+    <input type="text" name="past_title" placeholder="Title you loved" required />
+    <input type="text" name="future_title" placeholder="Title you want to try" required />
+    <input type="submit" value="Tell me why" />
   </form>
   {% if result %}
   <div class="result">{{ result }}</div>
