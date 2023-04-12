@@ -52,20 +52,29 @@ def index():
             temperature=0.9,
             max_tokens=512
         )
+        response_v3 = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=generate_past_future_link_prompt(past_title, future_title),
+            temperature=0.9,
+            max_tokens=512
+        )
         return redirect(
             url_for("index",
                     result=response.choices[0].message.content,
+                    result_v3=response_v3.choices[0].text,
                     past_title_image_url=past_title_image_url,
                     future_title_image_url=future_title_image_url
                     )
         )
 
     result = request.args.get("result")
+    result_v3 = request.args.get("result_v3")
     past_title_image_url = request.args.get("past_title_image_url")
     future_title_image_url = request.args.get("future_title_image_url")
     # return render_template("index.html", result=result)
     return render_template("index_animeQA.html", 
                            result=result,
+                           result_v3=result_v3,
                            past_title_image_url=past_title_image_url,
                            future_title_image_url=future_title_image_url)
 

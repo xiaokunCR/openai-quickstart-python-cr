@@ -20,18 +20,21 @@
     <input type="text" name="future_title" placeholder="Title you want to try" required />
     <input type="submit" value="Tell me why" />
   </form>
-
-
-  {% if result %}
   <br>
   <div class="movie-image">
     <img src="{{ past_title_image_url }}">
     <img src="{{ future_title_image_url }}">
   </div>
-  <br>
+  {% if result_v3 %}
+  <h3> GPT-3 Narrative </h3>
+  <div class="result">
+    <pre style="white-space: pre-wrap;">{{ result_v3 }}</pre>
+  </div>
+  {% endif %}
+  {% if result %}
+  <h3> GPT-4 Narrative </h3>
   <div class="result">
     <pre style="white-space: pre-wrap;">{{ result }}</pre>
   </div>
-
   {% endif %}
 </body>
