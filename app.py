@@ -1,5 +1,5 @@
 import os
-
+import requests
 import openai
 from flask import Flask, redirect, render_template, request, url_for
 
@@ -7,24 +7,67 @@ app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
+def get_movie_image(movie_name):
+    # Format the search query
+    query = movie_name + ' film poster'
+
+    # Search for the movie on Wikipedia
+    url = f'https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch={query}&srprop=size&utf8='
+    response = requests.get(url)
+    response_json = response.json()
+
+    # Retrieve the first result (assuming it's the most relevant)
+    if response_json['query']['search']:
+        title = response_json['query']['search'][0]['title']
+        page_id = response_json['query']['search'][0]['pageid']
+
+        # Get the page content for the movie
+        url = f'https://en.wikipedia.org/w/api.php?action=parse&format=json&pageid={page_id}&prop=images&utf8='
+        response = requests.get(url)
+        response_json = response.json()
+
+        # Find the first image with 'poster' in the file name
+        images = response_json['parse']['images']
+        for image in images:
+            if 'poster' in image.lower():
+                # Get the image URL
+                url = f'https://en.wikipedia.org/w/api.php?action=query&titles=File:{image}&prop=imageinfo&iiprop=url&format=json&utf8='
+                response = requests.get(url)
+                response_json = response.json()
+                pages = response_json['query']['pages']
+                image_url = pages[next(iter(pages))]['imageinfo'][0]['url']
+                return image_url
+            
 @app.route("/", methods=("GET", "POST"))
 def index():
     if request.method == "POST":
         # animal = request.form["animal"]
         past_title = request.form["past_title"]
         future_title = request.form["future_title"]
-        response = openai.Completion.create(
-            model="text-davinci-003",
-            # prompt=generate_prompt(animal),
-            prompt=generate_past_future_link_prompt(past_title, future_title),
+        past_title_image_url = get_movie_image(past_title)
+        future_title_image_url = get_movie_image(future_title)
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=generate_past_future_prompt_v4(past_title, future_title),
             temperature=0.9,
             max_tokens=512
         )
-        return redirect(url_for("index", result=response.choices[0].text))
+        return redirect(
+            url_for("index",
+                    result=response.choices[0].message.content,
+                    past_title_image_url=past_title_image_url,
+                    future_title_image_url=future_title_image_url
+                    )
+        )
 
     result = request.args.get("result")
+    past_title_image_url = request.args.get("past_title_image_url")
+    future_title_image_url = request.args.get("future_title_image_url")
     # return render_template("index.html", result=result)
-    return render_template("index_animeQA.html", result=result)
+    return render_template("index_animeQA.html", 
+                           result=result,
+                           past_title_image_url=past_title_image_url,
+                           future_title_image_url=future_title_image_url)
 
 
 
@@ -60,6 +103,15 @@ def generate_anime_recsys_prompt_noprimer(anime):
     and tell me why it would fit my interest""".format(
         anime.capitalize()
     )
+
+def generate_past_future_prompt_v4(past_title, future_title):
+    return [{
+        "role":"user",
+        "content": "You are an expert on the subject of Anime and your job is to convince me to watch {future}. I have enjoyed watching {past}. Tell me how is {future} related to the {past} and why will I like {future}".format(
+            past=past_title.capitalize(),
+            future=future_title.capitalize()
+        )
+        }]
 
 def generate_past_future_link_prompt(past_title, future_title):
     return """You are an expert on the subject of Anime and your job is to convince me to watch {future}. I have enjoyed watching {past}. Tell me how is {future} related to the {past} and why will I like {future}""".format(

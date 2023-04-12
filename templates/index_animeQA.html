@@ -19,7 +19,18 @@
     <input type="text" name="future_title" placeholder="Title you want to try" required />
     <input type="submit" value="Tell me why" />
   </form>
+
+
   {% if result %}
-  <div class="result">{{ result }}</div>
+  <br>
+  <div class="movie-image">
+    <img src="{{ past_title_image_url }}">
+    <img src="{{ future_title_image_url }}">
+  </div>
+  <br>
+  <div class="result">
+    <pre style="white-space: pre-wrap;">{{ result }}</pre>
+  </div>
+
   {% endif %}
 </body>
