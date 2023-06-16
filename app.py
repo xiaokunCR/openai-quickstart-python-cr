@@ -2,10 +2,24 @@ import os
 import requests
 import openai
 from flask import Flask, redirect, render_template, request, url_for
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+def get_tvmovie_image(title):
+    '''get the image poster from the tmdb search page using the title as query
+    then get the first result and return the image url
+    '''
+    # format the url
+    url = 'https://www.themoviedb.org/search?language=en-US&query=%s' % title.replace(' ', '+')
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
+    # get the search page
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.content.decode(), 'html.parser')
+    imgs = soup.find_all('img', class_='poster')
+    return 'https://image.tmdb.org/' + imgs[0]['src']
 
 def get_movie_image(movie_name):
     # Format the search query
@@ -44,10 +58,10 @@ def index():
         # animal = request.form["animal"]
         past_title = request.form["past_title"]
         future_title = request.form["future_title"]
-        past_title_image_url = get_movie_image(past_title)
-        future_title_image_url = get_movie_image(future_title)
+        past_title_image_url = get_tvmovie_image(past_title)
+        future_title_image_url = get_tvmovie_image(future_title)
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4-0613",
             messages=generate_past_future_prompt_v4(past_title, future_title),
             temperature=0.9,
             max_tokens=512
